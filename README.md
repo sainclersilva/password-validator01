@@ -239,8 +239,67 @@ Expected JSON (pretty-printed):
 
 ## Testes
 
-- Unitários: há testes para `DefaultPasswordValidator` cobrindo casos válidos e inválidos (`app/src/test/kotlin/org/example/PasswordValidatorTest.kt`).
-- Integração: teste que sobe a aplicação em memória e consome `/validate` (`app/src/test/kotlin/org/example/ApiIntegrationTest.kt`).
+O comando `.
+gradlew.bat :app:test` executa todos os testes do módulo `app` (unitários e de integração) e gera relatórios em `app/build/reports/tests/test`.
+
+Abaixo está a descrição detalhada dos testes que serão executados:
+
+- **Unit tests** (`app/src/test/kotlin/org/example/PasswordValidatorTest.kt`)
+	- Arquivo de teste: [app/src/test/kotlin/org/example/PasswordValidatorTest.kt](app/src/test/kotlin/org/example/PasswordValidatorTest.kt)
+	- Objetivo: validar a implementação de `DefaultPasswordValidator` cobrindo casos de entrada válidos e inválidos.
+	- O teste `sampleCases` instancia `DefaultPasswordValidator` e verifica diversas entradas:
+		- entradas vazias ou muito curtas devem ser inválidas;
+		- combinações sem caractere especial, com espaços ou com repetição de caracteres devem ser inválidas;
+		- a senha de exemplo `AbTp9!fok` deve ser considerada válida.
+
+- **Sanity test** (`app/src/test/kotlin/org/example/AppTest.kt`)
+	- Arquivo de teste: [app/src/test/kotlin/org/example/AppTest.kt](app/src/test/kotlin/org/example/AppTest.kt)
+	- Objetivo: pequena verificação de sanidade para garantir que a implementação do validador está acessível pela aplicação.
+	- O teste `validatorSanity` instancia `DefaultPasswordValidator` e assegura que uma senha conhecida válida retorna `true`.
+
+- **Integration test** (`app/src/test/kotlin/org/example/ApiIntegrationTest.kt`)
+	- Arquivo de teste: [app/src/test/kotlin/org/example/ApiIntegrationTest.kt](app/src/test/kotlin/org/example/ApiIntegrationTest.kt)
+	- Objetivo: subir a aplicação em memória (usando `testApplication`) e testar o endpoint `/validate` end-to-end.
+	- O teste `validateEndpoint` cria um cliente HTTP em memória, envia um POST JSON para `/validate` com `AbTp9!fok` e verifica:
+		- resposta HTTP 200 (OK);
+		- corpo da resposta contém `valid: true`.
+
+Observações úteis:
+
+- Para executar apenas um teste específico você pode usar o filtro Gradle, por exemplo:
+
+```powershell
+.
+gradlew.bat :app:test --tests "org.example.PasswordValidatorTest.sampleCases"
+```
+
+- Os relatórios HTML ficam em `app/build/reports/tests/test/index.html` (abra no navegador para ver resultados detalhados).
+
+- O comando `:app:test` executa testes na JVM configurada pelo Gradle (ver arquivo `app/build.gradle.kts`).
+
+Em resumo: `.
+gradlew.bat :app:test` roda os testes unitários e de integração presentes no módulo `app`, cobrindo a validação de senhas, uma checagem de sanidade e um teste de integração contra o endpoint `/validate`.
+
+## Estrutura do projeto
+
+Visão geral das pastas e arquivos Kotlin/Gradle mais relevantes:
+
+- Raiz do repositório
+	- [settings.gradle.kts](settings.gradle.kts) — configuração do build multi-módulo (Kotlin DSL)
+	- [gradle.properties](gradle.properties)
+	- `gradlew`, `gradlew.bat` — wrapper Gradle
+
+- Módulo `app`
+	- [app/build.gradle.kts](app/build.gradle.kts) — build script do módulo (Kotlin DSL)
+	- `app/src/main/kotlin/org/example/`
+		- [app/src/main/kotlin/org/example/App.kt](app/src/main/kotlin/org/example/App.kt) — configuração do Ktor, rotas e `module()`
+		- [app/src/main/kotlin/org/example/openapi/OpenApiGenerator.kt](app/src/main/kotlin/org/example/openapi/OpenApiGenerator.kt) — geração do `openapi.json`
+		- [app/src/main/kotlin/org/example/validator/PasswordValidator.kt](app/src/main/kotlin/org/example/validator/PasswordValidator.kt) — interface e implementação `DefaultPasswordValidator`
+	- `app/src/test/kotlin/org/example/`
+		- [app/src/test/kotlin/org/example/PasswordValidatorTest.kt](app/src/test/kotlin/org/example/PasswordValidatorTest.kt) — testes unitários do validador
+		- [app/src/test/kotlin/org/example/AppTest.kt](app/src/test/kotlin/org/example/AppTest.kt) — teste de sanidade
+		- [app/src/test/kotlin/org/example/ApiIntegrationTest.kt](app/src/test/kotlin/org/example/ApiIntegrationTest.kt) — teste de integração (endpoint `/validate`)
+	- `app/bin/main/org/example/` e `app/bin/test/org/example/` — artefatos gerados/embutidos no repositório (contêm cópias das fontes usadas para execução/tests em alguns pacotes)
 
 ## Abstração, Acoplamento, Extensibilidade e Coesão
 
